@@ -1,0 +1,21 @@
+﻿yearly_global_pulse = {
+	on_actions = {
+		historical_iberia_story_on_action
+	}
+}
+
+
+historical_iberia_story_on_action = {
+	effect = {
+		if = {
+			limit = {
+				NOT = { has_global_variable = historical_iberia_story_running }
+			}
+			debug_log = "historical: iberia story: init"
+			trigger_event = {
+				id = historical_iberia.0001
+				days = 1
+			}
+		}
+	}
+}

@@ -1,0 +1,23 @@
+﻿namespace = historical_iberia
+
+# 史実イベリア再現全体
+historical_iberia.0001 = {
+	scope = none
+	hidden = yes
+
+	immediate = {
+		debug_log = "historical: iberia story: started:"
+		debug_log_date = yes
+
+		# キリスト教側の主人公を選出
+		decide_iberia_christians_leader_effect = yes
+		scope:iberia_christians_leader = {
+			debug_log = "historical: iberia story: christians leader:"
+			debug_log_scopes = yes
+		}
+		scope:iberia_christians_leader = {
+			save_scope_as = story_owner
+			create_story = historical_iberia_story
+		}
+	}
+}

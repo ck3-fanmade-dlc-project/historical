@@ -1,0 +1,24 @@
+﻿decide_iberia_christians_leader_effect = {
+	every_ruler = {
+		limit = {
+			# プレイヤーではない
+			is_ai = yes
+			# 土地を持つ
+			is_landed = yes
+			# 王国以上を持つ
+			highest_held_title_tier > tier_barony
+			# 首都がイベリア半島にある
+			exists = capital_province
+			capital_province = { geographical_region = world_europe_west_iberia }
+			# キリスト教系
+			faith.religion = religion:christianity_religion
+		}
+		add_to_list = christians_leader_candidates
+	}
+	ordered_in_list = {
+		list = christians_leader_candidates
+		order_by = max_military_strength # 一番戦力を持っている人を選ぶ
+		max = 1
+		save_scope_as = iberia_christians_leader
+	}
+}

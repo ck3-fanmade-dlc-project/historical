@@ -1,0 +1,215 @@
+﻿historical_iberia_story = {
+	on_setup = {
+		set_global_variable = {
+			name = historical_iberia_story_running
+			value = yes
+		}
+	}
+
+	on_end = {
+		debug_log = "historical: iberia story: ended:"
+		debug_log_date = yes
+
+		remove_global_variable = historical_iberia_story_running
+	}
+
+	on_owner_death = {
+		debug_log = "historical: iberia story: christians leader: dead:"
+		debug_log_date = yes
+
+		decide_iberia_christians_leader_effect = yes
+
+		if = {
+			limit = {
+				exists = scope:iberia_christians_leader
+			}
+			debug_log = "historical: iberia story: continued:"
+			debug_log_date = yes
+
+			scope:iberia_christians_leader = {
+				debug_log = "historical: iberia story: christians leader:"
+				debug_log_scopes = yes
+			}
+		}
+		else = {
+			end_story = yes
+		}
+	}
+
+	# ゲーム開始直後強いやつと結婚させる
+	effect_group = {
+		days = { 3 5 }
+
+		trigger = {
+			story_owner = {
+				NOT = { has_pending_interaction_of_type = marry_off_interaction }
+				NOT = { has_pending_interaction_of_type = arrange_marriage_interaction }
+				can_marry_trigger = yes
+				is_concubine = no
+				is_married = no
+				is_betrothed = no
+				is_adult = yes
+			}
+		}
+
+		triggered_effect = {
+			trigger = {
+				always = yes
+			}
+			effect = {
+				story_owner = {
+					save_scope_as = iberia_christians_leader
+				}
+				# 結婚候補となる娘を持つ支配者のリストアップ
+				every_ruler = {
+					limit = {
+						NOT = { is_vassal_or_below_of = scope:iberia_christians_leader }
+						# is_independent_ruler = yes
+						is_landed = yes
+						# 外交範囲
+						in_diplomatic_range = scope:iberia_christians_leader
+						# 結婚できる子供がいる
+						any_child = {
+							NOT = { has_pending_interaction_of_type = marry_off_interaction }
+							NOT = { has_pending_interaction_of_type = arrange_marriage_interaction }
+							can_marry_trigger = yes
+							is_concubine = no
+							is_married = no
+							is_betrothed = no
+							faith = {
+								faith_hostility_level = {
+									target = scope:iberia_christians_leader.faith
+									value < faith_hostility_prevents_marriage_level
+								}
+							}
+							trigger_if = {
+								limit = {
+									scope:iberia_christians_leader = {
+										allowed_to_marry_same_sex_trigger = no
+									}
+								}
+								sex_opposite_of = scope:iberia_christians_leader
+							}
+							# age > 10
+						}
+						# 結婚できる宗教
+						faith = {
+							faith_hostility_level = {
+								target = scope:iberia_christians_leader.faith
+								value < faith_hostility_prevents_marriage_level
+							}
+						}
+					}
+					add_to_list = parent_candidates
+				}
+
+				# まずは戦力の高い順でソートする
+				ordered_in_list = {
+					list = parent_candidates
+					order_by = max_military_strength
+					max = 10
+					add_to_list = parent_candidates_by_military_strength
+				}
+
+				ordered_in_list = {
+					list = parent_candidates_by_military_strength
+					order_by = {
+						value = 10
+						if = {
+							limit = {
+								is_at_war = yes
+							}
+							subtract = 2
+						}
+						if = {
+							limit = {
+								highest_held_title_tier = tier_empire
+							}
+							add = 2
+						}
+						if = {
+							limit = {
+								highest_held_title_tier = tier_kingdom
+							}
+							add = 1
+						}
+						if = {
+							limit = {
+								exists = capital_province
+								capital_province = { geographical_region = world_europe_west_iberia }
+							}
+							subtract = 2
+						}
+						if = {
+							limit = {
+								is_close_family_of = scope:iberia_christians_leader
+							}
+							subtract = 2
+						}
+						# if = {
+						# 	limit = {
+						# 		is_independent_ruler = no
+						# 	}
+						# 	subtract = 1
+						# }
+						if = {
+							limit = {
+								any_child = {
+									count = 0
+									age >= 10
+								}
+							}
+							subtract = 2
+						}
+					}
+					max = 1
+					save_scope_as = parent_of_spouse_candidates
+				}
+
+				scope:parent_of_spouse_candidates = {
+					every_child = {
+						limit = {
+							NOT = { has_pending_interaction_of_type = marry_off_interaction }
+							NOT = { has_pending_interaction_of_type = arrange_marriage_interaction }
+							can_marry_trigger = yes
+							is_concubine = no
+							is_married = no
+							is_betrothed = no
+							faith = {
+								faith_hostility_level = {
+									target = scope:iberia_christians_leader.faith
+									value < faith_hostility_prevents_marriage_level
+								}
+							}
+							trigger_if = {
+								limit = {
+									scope:iberia_christians_leader = {
+										allowed_to_marry_same_sex_trigger = no
+									}
+								}
+								sex_opposite_of = scope:iberia_christians_leader
+							}
+						}
+						add_to_list = spouse_candidates
+					}
+				}
+
+				ordered_in_list = {
+					list = spouse_candidates
+					order_by = age
+					max = 1
+					save_scope_as = spouse_candidate
+				}
+
+				run_interaction = {
+					interaction = arrange_marriage_interaction
+					actor = scope:iberia_christians_leader
+					secondary_actor = scope:iberia_christians_leader
+					recipient = scope:parent_of_spouse_candidates
+					secondary_recipient = scope:spouse_candidate
+					execute_threshold = decline # ?
+				}
+			}
+		}
+	}
+}
